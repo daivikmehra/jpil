@@ -1,0 +1,27 @@
+{
+  "name": "e-incident-spyder",
+  "version": "1.0.0",
+  "description": "Backend layer for eincident reporting app",
+  "main": "app.js",
+  "scripts": {
+    "test": "npm test",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/e-incident/e-incident-spyder.git"
+  },
+  "keywords": [
+    "e-incident"
+  ],
+  "author": "chandanch",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "moment": "^2.24.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2",
+    "tedious": "^4.1.3"
+  }
+}

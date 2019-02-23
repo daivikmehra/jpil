@@ -1,0 +1,980 @@
+qry_AmmoniaDestruction2
+
+select Measure_Date, ID, FI005_Company, FI005_Unit,
+1.04*
+(((FI005_Value/33.01)+(FI006_Value/22.97))/(((FI003_Value+FI004_Value)/28.69)+(FI005_Value/33.01)+(FI006_Value/22.97)))*
+100*
+((.33*(FI006_Value/22.97))/((FI005_Value/33.01)+(FI006_Value/22.97)))*
+(1-
+(1-(1/(1+(717.5*Power((FI003_Value + FI004_Value + FI005_Value + FI006_Value),-0.668)*150000000000*Exp(-31500/(273.15+TI010_Value)))))))*10000 CalcValue
+from(
+(Select ref_data.Measure_Date Measure_Date, ref_data.ID ID, FI005_Value, FI006_Value, FI003_Value, FI004_Value, TI010_Value, FI005_Company, FI005_Unit
+from
+(select measure_date as FI005_Date, measure_value as FI005_Value, t.Tag_Number_ID FI005_TAG_ID, t.company FI005_Company, t.Unit FI005_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.TAG_REF_ID = T.ID
+and T.Tag_Number_ID = 'FI005') FI005
+left outer join
+(select measure_date as FI006_Date, measure_value as FI006_Value, t.Tag_Number_ID FI006_TAG_ID, t.company FI006_Company, t.Unit FI006_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.TAG_REF_ID = T.ID
+and T.Tag_Number_ID = 'FI006') FI006
+on FI005_date = FI006_Date
+and FI005_Company = FI006_Company
+and FI005_Unit = FI006_Unit
+left outer join
+(select measure_date as FI003_Date, measure_value as FI003_Value, t.Tag_Number_ID FI003_TAG_ID, t.company FI003_Company, t.Unit FI003_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.TAG_REF_ID = T.ID
+and T.Tag_Number_ID = 'FI003') FI003
+on FI005_Date = FI003_date
+and FI005_Company = FI003_company
+and FI005_unit = FI003_unit
+left outer join
+(select measure_date as FI004_Date, measure_value as FI004_Value, t.Tag_Number_ID FI004_TAG_ID, t.company FI004_Company, t.Unit FI004_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.TAG_REF_ID = T.ID
+and T.Tag_Number_ID = 'FI004') FI004
+on FI005_date = FI004_Date
+and FI005_company = FI004_Company
+and FI005_unit = FI004_unit
+left outer join
+(select measure_date as TI010_Date, measure_value as TI010_Value, t.Tag_Number_ID TI010_TAG_ID, t.company TI010_Company, t.Unit TI010_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.TAG_REF_ID = T.ID
+and T.Tag_Number_ID = 'TI010') TI010
+on FI005_date = TI010_Date
+and FI005_company = TI010_Company
+and FI005_unit = TI010_Unit
+left outer join
+(select s.ID ID, s.measure_date Measure_Date, t.Tag_number_id Tag_Number_ID, s.Company Company, s.unit UNIT
+from
+dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI005') ref_data
+on FI005_date = ref_data.Measure_date
+and FI005_Company = ref_data.Company
+and FI005_Unit = ref_data.Unit)) SourceData
+where ((FI003_Value + FI004_Value)/28.69)+(FI005_Value/33.01)+(FI006_Value/22.97) <> 0
+and (FI005_Value/33.01)+(FI006_Value/22.97) <> 0
+order by measure_date ASC
+
+
+
+=========================================
+
+qry_CombAir_AcidGas_Ratio2
+
+
+select 
+Ref_Data.Measure_Date as Measure_Date,
+Ref_Data.ID ID, Ref_Data.Company Company, Ref_Data.Unit Unit,
+(FI003_Value + FI004_Value)/(FI005_Value + FI006_Value) as CombustionAir_AcidGas_FlowRatio,
+FI003_Value + FI004_Value as Numerator,
+FI005_Value + FI006_Value as Denominator
+from (
+select Measure_Date as FI003_Measure_Date, t.company Company, t.unit Unit,
+Measure_Value as FI003_Value
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI003') FI003
+left outer join
+(select Measure_Date as FI004_Measure_Date, t.company Company, t.unit Unit,
+Measure_Value as FI004_Value
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI004') FI004
+on FI003_Measure_date = FI004_Measure_Date
+and FI003.Company = FI004.Company
+and FI003.Unit = FI004.Unit
+left outer join
+(select Measure_Date as FI005_Measure_Date, t.company Company, t.unit Unit,
+Measure_Value as FI005_Value
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI005') FI005
+on FI003_Measure_Date = FI005_Measure_Date
+and FI003.Company = FI005.Company
+and FI003.Unit = FI005.Unit
+left outer join
+(select Measure_Date as FI006_Measure_Date, t.company Company, t.unit Unit,
+Measure_Value as FI006_Value
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI006') FI006
+on FI003_Measure_Date = FI006_Measure_Date
+and FI003.Company = FI006.Company
+and FI003.Unit = FI006.Unit
+left outer join 
+(select s.ID ID, t.tag_number_id Tag_Number_id, t.Company Company, t.Unit Unit, s.Measure_Date Measure_date
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI003') Ref_Data
+on FI003_measure_date = Ref_Data.measure_date 
+and FI003.Company = Ref_data.Company
+and FI003.Unit = Ref_Data.Unit 
+where FI005_Value+FI006_Value <> 0
+order by Measure_date ASC
+
+====================================================
+
+qry_CombAirPressure2
+
+select Ref.measure_date as Measure_Date,
+Ref.ID as MeasureID, Ref.Company as Company, Ref.Unit as Unit,
+PI007_Value*1000/(POWER(((FI003_Value + FI004_Value)/3600),2)) as Combustion_Air_Pressure,
+PI007_Value*1000 as Numerator,
+POWER(((FI003_Value + FI004_Value)/3600),2) as Denominator
+from
+(select Measure_Date as PI007_Measure_Date,
+Measure_Value as PI007_Value,
+s.ID as PI007_ID,
+s.Company as PI007_Company,
+s.Unit as PI007_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'PI007') PI007
+left outer join
+(select Measure_Date as FI003_Measure_Date,
+Measure_Value as FI003_Value,
+s.ID as FI003_ID,
+s.Company as FI003_Company,
+s.Unit as FI003_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI003') FI003
+on PI007_Measure_Date = FI003_Measure_Date
+and PI007_Company = FI003_Company
+and PI007_Unit = FI003_Unit
+left outer join
+(select Measure_Date as FI004_Measure_Date,
+Measure_Value as FI004_Value,
+s.ID as FI004_ID,
+s.Company as FI004_Company,
+s.Unit as FI004_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI004') FI004
+on PI007_Measure_date = FI004_Measure_Date
+and PI007_Company = FI004_Company
+and PI007_Unit = FI004_Unit
+left outer join
+(select s.ID ID, s.Measure_date Measure_Date, t.ID Tag_ID, t.tag_number_id TagName, s.Company Company, s.unit Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.ID
+and s.company = t.company
+and s.unit = t.unit
+and t.tag_number_id = 'PI007') Ref
+on PI007_ID = ref.ID
+where POWER((FI003_Value + FI004_Value),2) <> 0
+
+====================================
+
+qry_MCTemp_Calc2
+
+with CTE as
+(Select FI003_Date, FI003_ID, FI003_Company, FI003_Unit, FI003_Value, FI004_Value, FI005_Value, FI006_Value, FI008_Value,
+TI066_Value, TI067_Value, TI068_Value
+from
+(select s.measure_date FI003_Date, s.Measure_value FI003_Value, s.ID FI003_ID, s.company FI003_Company, s.Unit FI003_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI003') FI003
+left outer join
+(select measure_date FI004_Date, Measure_value FI004_Value, s.ID FI004_ID, s.company FI004_Company, s.Unit FI004_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI004') FI004
+on FI003_Date = FI004_Date
+and FI003_Company = FI004_Company
+and FI003_Unit = FI004_Unit
+left outer join
+(select measure_date FI005_Date, Measure_value FI005_Value, s.ID FI005_ID, s.company FI005_Company, s.Unit FI005_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI005') FI005
+on FI003_Date = FI005_Date
+and FI003_Company = FI005_Company
+and FI003_Unit = FI005_Unit
+left outer join
+(select measure_date FI006_Date, Measure_value FI006_Value, s.ID FI006_ID, s.company FI006_Company, s.Unit FI006_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI006') FI006
+on FI003_Date = FI006_Date
+and FI003_Company = FI006_Company
+and FI003_Unit = FI006_Unit
+left outer join
+(select measure_date FI008_Date, Measure_value FI008_Value, s.ID FI008_ID, s.company FI008_Company, s.Unit FI008_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI008') FI008
+on FI003_Date = FI008_Date
+and FI003_Company = FI008_Company
+and FI003_Unit = FI008_Unit
+left outer join
+(select measure_date TI066_Date, Measure_value TI066_Value, s.ID TI066_ID, s.company TI066_Company, s.Unit TI066_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI066') TI066
+on FI003_Date = TI066_Date
+and FI003_Company = TI066_Company
+and FI003_Unit = TI066_Unit
+left outer join
+(select measure_date TI067_Date, Measure_value TI067_Value, s.ID TI067_ID, s.company TI067_Company, s.Unit TI067_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI067') TI067
+on FI003_Date = TI067_Date
+and FI003_Company = TI067_Company
+and FI003_Unit = TI067_Unit
+left outer join
+(select measure_date TI068_Date, Measure_value TI068_Value, s.ID TI068_ID, s.company TI068_Company, s.Unit TI068_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI068') TI068
+on FI003_Date = TI068_Date
+and FI003_Company = TI068_Company
+and FI003_Unit = TI068_Unit)
+
+select ref.Measure_Date Measure_Date, ref.MeasureID MeasureID, ref.company Company, ref.unit Unit,
+5918.05 *
+((.2278*(FI003_Value + FI004_Value))/(FI003_Value + FI004_Value + FI005_Value + FI006_Value + FI008_Value)) +
+449.124 + 
+.221*
+((((FI005_Value*1.07*TI067_Value)+(FI006_Value*1.59*TI068_Value))/((FI005_Value*1.07)+(FI006_Value*1.59)))-120) +
+.395 *
+(TI066_Value - 220) -
+13 * ((1/((FI003_Value + FI004_Value)/14576))-1) MCCTemp
+
+from CTE,
+(select s.measure_date Measure_Date, s.ID MeasureID, s.Company Company, s.Unit Unit, t.tag_number_id Tag_Number_ID
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.TAG_REF_ID = t.ID) ref
+
+where FI003_ID = ref.MeasureID 
+and (FI003_Value + FI004_Value + FI005_Value + FI006_Value + FI008_Value) <> 0
+and ((FI005_Value*1.07)+(FI006_Value*1.59)) <> 0
+and ((FI003_Value + FI004_Value)/14576) <> 0
+
+order by Measure_date asc
+
+=======================================
+
+qry_FirstReactor_Metrics2
+
+select
+Ref.measure_date as Measure_Date,
+Ref.ID as Measure_ID,
+Ref.Company as Company,
+Ref.Unit as Unit,
+((TI016_value-TI015_value)/(TI018_Value-TI015_Value)) First_Reactor_Top,
+((TI017_value-TI016_value)/(TI018_Value-TI015_Value)) First_Reactor_Middle,
+((TI018_value-TI017_value)/(TI018_Value-TI015_Value)) First_Reactor_Bottom,
+(TI018_Value-TI015_Value) First_Reactor_Delta_T
+from (select Measure_Date as TI016_Date, 
+	       Measure_Value as TI016_Value,
+		   s.ID as TI016_ID,
+		   s.company as TI016_Company,
+		   s.Unit as TI016_Unit
+	from dbo.slovnaft_data2 s, tag_Ref2 t
+	where s.tag_ref_id = t.id
+	and t.Tag_Number_ID = 'TI016') TI016
+	left outer join
+	(
+	select Measure_date as TI015_Date,
+	measure_value as TI015_Value,
+	s.ID as TI015_ID,
+		   s.company as TI015_Company,
+		   s.Unit as TI015_Unit
+	from dbo.slovnaft_data2 s, tag_Ref2 t
+	where s.tag_ref_id = t.id
+	and t.Tag_Number_ID = 'TI015') TI015
+	on TI016_Date = TI015_Date
+	and TI016_Company = TI015_Company
+	and TI016_Unit = TI015_Unit
+	left outer join
+	(
+	select Measure_date as TI017_Date,
+	measure_value as TI017_Value,
+	s.ID as TI017_ID,
+	s.Company as TI017_Company,
+	s.Unit as TI017_Unit
+	from dbo.slovnaft_data2 s, tag_Ref2 t
+	where s.tag_ref_id = t.id
+	and t.Tag_Number_ID = 'TI017') TI017
+	on TI016_Date = TI017_Date
+	and TI016_Company = TI017_Company
+	and TI016_Unit = TI017_Unit
+	left outer join
+	(
+	select Measure_date as TI018_Date,
+	measure_value as TI018_Value,
+	s.ID as TI018_ID,
+	s.Company as TI018_Company,
+	s.Unit as TI018_Unit
+	from dbo.slovnaft_data2 s, tag_Ref2 t
+	where s.tag_ref_id = t.id
+	and t.Tag_Number_ID = 'TI018') TI018
+	on TI016_Date = TI018_Date
+	and TI016_Company = TI018_Company
+	and TI016_Unit = TI018_Unit
+	left outer join
+	(select s.ID ID, s.Measure_date Measure_Date, t.ID Tag_ID, t.tag_number_id TagName, s.Company Company, s.unit Unit
+	from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+	where s.tag_ref_id = t.ID
+	and s.company = t.company
+	and s.unit = t.unit
+	and t.tag_number_id = 'TI016') Ref
+	on TI016_ID = ref.ID	
+	where TI018_Value-TI015_Value<>0
+
+==============================================
+
+qry_SecondReactor_Metrics2
+
+
+select
+Ref.Measure_date as Measure_Date,
+Ref.Measure_ID as MeasureID,
+Ref.Company as Company,
+Ref.Unit as Unit,
+((TI023_value-TI022_value)/(TI025_Value-TI022_Value)) Second_Reactor_Top,
+((TI024_value-TI023_value)/(TI025_Value-TI022_Value)) Second_Reactor_Middle,
+((TI025_value-TI024_value)/(TI025_Value-TI022_Value)) Second_Reactor_Bottom,
+(TI025_Value-TI022_Value) Second_Reactor_Delta_T
+from (
+select s.Measure_Date as TI022_Date,
+s.Measure_Value as TI022_Value,
+s.ID as TI022_ID,
+s.Company as TI022_Company,
+s.Unit as TI022_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI022') TI022
+left outer join
+(
+select Measure_date as TI023_Date,
+measure_value as TI023_Value,
+s.ID as TI023_ID,
+s.Company as TI023_Company,
+s.Unit as TI023_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI023') TI023
+on TI022_Date = TI023_Date
+and TI022_Company = TI023_Company
+and TI022_Unit = TI023_Unit
+left outer join
+(
+select Measure_date as TI024_Date,
+measure_value as TI024_Value,
+s.ID as TI024_ID,
+s.Company as TI024_Company,
+s.Unit as TI024_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI024') TI024
+on TI022_Date = TI024_Date
+and TI022_Company = TI024_Company
+and TI022_Unit = TI024_Unit
+left outer join
+(
+select Measure_date as TI025_Date,
+measure_value as TI025_Value,
+s.ID as TI025_ID,
+s.Company as TI025_Company,
+s.Unit as TI025_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI025') TI025
+on TI022_Date = TI025_Date
+and TI022_Company = TI025_Company
+and TI022_Unit = TI025_Unit
+left outer join
+(select s.Measure_Date Measure_date, s.ID Measure_ID, s.Company Company, s.Unit Unit, T.tag_number_id Tag_Number_id
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id) ref
+on TI023_ID = ref.Measure_ID
+where TI025_Value-TI022_Value<>0
+
+
+================================================
+
+qry_ThirdReactor_Metrics2
+
+
+select
+Ref.Measure_date as Measure_Date,
+Ref.Measure_ID,
+Ref.Company Company,
+Ref.Unit Unit,
+((TI030_value-TI029_value)/(TI032_Value-TI029_Value)) Third_Reactor_Top,
+((TI031_value-TI030_value)/(TI032_Value-TI029_Value)) Third_Reactor_Middle,
+((TI032_value-TI031_value)/(TI032_Value-TI029_Value)) Third_Reactor_Bottom, 
+(TI032_Value-TI029_Value) Third_Reactor_Delta_T
+from (
+select Measure_Date as TI029_Date, 
+Measure_Value as TI029_Value,
+s.ID as TI029_ID,
+s.Company as TI029_Company,
+s.Unit as TI029_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI029') TI029
+left outer join
+(
+select Measure_date as TI030_Date,
+measure_value as TI030_Value,
+s.ID as TI030_ID,
+s.Company as TI030_Company,
+s.Unit as TI030_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI030') TI030
+on TI030_Date = TI029_Date
+and TI030_Company = TI029_Company
+and TI030_Unit = TI029_Unit
+left outer join
+(
+select Measure_date as TI031_Date,
+measure_value as TI031_Value,
+s.ID as TI031_ID,
+s.Company as TI031_Company,
+s.Unit as TI031_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI031') TI031
+on TI031_Date = TI029_Date
+and TI031_Company = TI029_Company
+and TI031_Unit = TI029_Unit
+left outer join
+(
+select Measure_date as TI032_Date,
+measure_value as TI032_Value,
+s.ID as TI032_ID,
+s.Company as TI032_Company,
+s.Unit as TI032_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'TI032') TI032
+on TI032_Date = TI029_Date
+and TI032_Company = TI029_Company
+and TI032_Unit = TI029_Unit
+left outer join
+(select s.Measure_Date Measure_date, s.ID Measure_ID, s.Company Company, s.Unit Unit, T.tag_number_id Tag_Number_id
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id) ref
+on TI029_ID = ref.Measure_ID
+where TI032_Value-TI029_Value<>0
+
+
+================================================
+
+qry_Burner_1_2
+
+
+select Ref.measure_date as Measure_Date,
+Ref.Measure_ID Measure_ID,
+ref.Company Company,
+ref.Unit Unit,
+FI014_Value/FI013_Value as Burner_1_Ratio
+from
+(select Measure_Date as FI013_Measure_Date,
+Measure_Value as FI013_Value,
+s.Company FI013_Company,
+s.ID FI013_ID,
+s.Unit FI013_Unit
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI013') FI013
+left outer join
+(select Measure_Date as FI014_Measure_Date,
+Measure_Value as FI014_Value,
+s.Company FI014_Company,
+s.ID FI014_ID,
+s.Unit FI014_Unit
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI014') FI014
+on FI013_Measure_Date = FI014_Measure_Date
+and FI013_Company = FI014_Company
+and FI013_Unit = FI014_Unit
+left outer join
+(select s.Measure_Date Measure_date, s.ID Measure_ID, s.Company Company, s.Unit Unit, T.tag_number_id Tag_Number_id
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id) ref
+on FI013_ID = ref.Measure_ID
+where FI013_Value <>0
+
+
+===============================================
+
+qry_Burner_2_2
+
+select Ref.measure_date as Measure_Date,
+Ref.Measure_ID Measure_ID,
+ref.Company Company,
+ref.Unit Unit,
+FI021_Value/FI020_Value as Burner_1_Ratio
+from
+(select Measure_Date as FI020_Measure_Date,
+Measure_Value as FI020_Value,
+s.Company FI020_Company,
+s.ID FI020_ID,
+s.Unit FI020_Unit
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI020') FI020
+left outer join
+(select Measure_Date as FI021_Measure_Date,
+Measure_Value as FI021_Value,
+s.Company FI021_Company,
+s.ID FI021_ID,
+s.Unit FI021_Unit
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI021') FI021
+on FI020_Measure_Date = FI021_Measure_Date
+and FI020_Company = FI021_Company
+and FI020_Unit = FI021_Unit
+left outer join
+(select s.Measure_Date Measure_date, s.ID Measure_ID, s.Company Company, s.Unit Unit, T.tag_number_id Tag_Number_id
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id) ref
+on FI020_ID = ref.Measure_ID
+where FI020_Value <>0
+
+======================================
+
+qry_Burner_3_2
+
+select Ref.measure_date as Measure_Date,
+Ref.Measure_ID Measure_ID,
+ref.Company Company,
+ref.Unit Unit,
+FI028_Value/FI027_Value as Burner_1_Ratio
+from
+(select Measure_Date as FI027_Measure_Date,
+Measure_Value as FI027_Value,
+s.Company FI027_Company,
+s.ID FI027_ID,
+s.Unit FI027_Unit
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI027') FI027
+left outer join
+(select Measure_Date as FI028_Measure_Date,
+Measure_Value as FI028_Value,
+s.Company FI028_Company,
+s.ID FI028_ID,
+s.Unit FI028_Unit
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI028') FI028
+on FI027_Measure_Date = FI028_Measure_Date
+and FI027_Company = FI028_Company
+and FI027_Unit = FI028_Unit
+left outer join
+(select s.Measure_Date Measure_date, s.ID Measure_ID, s.Company Company, s.Unit Unit, T.tag_number_id Tag_Number_id
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id) ref
+on FI027_ID = ref.Measure_ID
+where FI027_Value <>0
+
+
+=============================================
+
+qry_Burner_4_2
+
+
+
+select Ref.measure_date as Measure_Date,
+Ref.Measure_ID Measure_ID,
+ref.Company Company,
+ref.Unit Unit,
+FI037_Value/FI036_Value as Burner_1_Ratio
+from
+(select Measure_Date as FI036_Measure_Date,
+Measure_Value as FI036_Value,
+s.Company FI036_Company,
+s.ID FI036_ID,
+s.Unit FI036_Unit
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI036') FI036
+left outer join
+(select Measure_Date as FI037_Measure_Date,
+Measure_Value as FI037_Value,
+s.Company FI037_Company,
+s.ID FI037_ID,
+s.Unit FI037_Unit
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id
+and t.Tag_Number_ID = 'FI037') FI037
+on FI036_Measure_Date = FI037_Measure_Date
+and FI036_Company = FI037_Company
+and FI036_Unit = FI037_Unit
+left outer join
+(select s.Measure_Date Measure_date, s.ID Measure_ID, s.Company Company, s.Unit Unit, T.tag_number_id Tag_Number_id
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id) ref
+on FI036_ID = ref.Measure_ID
+where FI036_Value <>0
+
+
+
+=======================================
+
+qry_SC_Right_Reactor2
+
+select ref.Measure_Date, TI044_Value - TI043_Value Measure_Value, ref.Measure_ID Measure_ID, ref.Company Company, ref.Unit Unit
+from
+(select s.Measure_Date TI043_Date, s.measure_value TI043_Value, s.ID TI043_ID, s.Company TI043_Company, s.Unit TI043_Unit
+from dbo.tag_ref2 t, dbo.slovnaft_data2 s
+where s.tag_ref_id = t.ID
+and t.Tag_Number_ID = 'TI043') Min_Value
+left outer join
+(select s.Measure_Date TI044_Date, s.measure_value TI044_Value, s.ID TI044_ID, s.Company TI044_Company, s.Unit TI044_Unit
+from dbo.tag_ref2 t, dbo.slovnaft_data2 s
+where s.tag_ref_id = t.ID
+and t.Tag_Number_ID = 'TI044') Measure_Value
+on ti043_date = ti044_date
+and ti043_company = ti044_company
+and ti043_unit = ti044_unit
+left outer join
+(select s.Measure_Date Measure_date, s.ID Measure_ID, s.Company Company, s.Unit Unit, T.tag_number_id Tag_Number_id
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id) ref
+on TI043_ID = ref.Measure_ID
+
+
+=============================================
+
+qry_SC_Left_Reactor2
+
+
+select ref.Measure_Date, TI041_Value - TI040_Value Measure_Value, ref.Measure_ID Measure_ID, ref.Company Company, ref.Unit Unit
+from
+(select s.Measure_Date TI040_Date, s.measure_value TI040_Value, s.ID TI040_ID, s.Company TI040_Company, s.Unit TI040_Unit
+from dbo.tag_ref2 t, dbo.slovnaft_data2 s
+where s.tag_ref_id = t.ID
+and t.Tag_Number_ID = 'TI040') Min_Value
+left outer join
+(select s.Measure_Date TI041_Date, s.measure_value TI041_Value, s.ID TI041_ID, s.Company TI041_Company, s.Unit TI041_Unit
+from dbo.tag_ref2 t, dbo.slovnaft_data2 s
+where s.tag_ref_id = t.ID
+and t.Tag_Number_ID = 'TI041') Measure_Value
+on TI040_date = TI041_date
+and TI040_company = TI041_company
+and TI040_unit = TI041_unit
+left outer join
+(select s.Measure_Date Measure_date, s.ID Measure_ID, s.Company Company, s.Unit Unit, T.tag_number_id Tag_Number_id
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id) ref
+on TI040_ID = ref.Measure_ID
+
+
+==============================================
+
+qry_SRE_Calc1_2
+
+with CTE as
+(Select FI003_Date, FI003_ID, FI003_Value, FI004_Value, FI005_Value, FI006_Value, FI008_Value, FI013_Value,
+FI014_Value, FI020_Value, FI021_Value, FI027_Value, FI028_Value, FI036_Value, FI037_Value, FI046_Value,
+FI048_Value, FI052_Value, FI053_Value, FI054_Value, AI063_Value
+from
+(select measure_date as FI003_Date, measure_value as FI003_value, t.Tag_number_id as FI003_Tag, s.ID FI003_ID, s.Company FI003_Company, s.Unit FI003_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI003') FI003
+left outer join
+(select measure_date as FI004_Date, measure_value as FI004_value, t.Tag_number_id as FI004_Tag, s.ID FI004_ID, s.Company FI004_Company, s.Unit FI004_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI004') FI004
+on FI003_Date = FI004_Date
+and FI003_Company = FI004_Company
+and FI003_Unit = FI004_Unit
+left outer join
+(select measure_date as FI005_Date, measure_value as FI005_value, t.Tag_number_id as FI005_Tag, s.ID FI005_ID, s.Company FI005_Company, s.Unit FI005_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI005') FI005
+on FI003_Date = FI005_Date
+and FI003_Company = FI005_Company
+and FI003_Unit = FI005_Unit
+left outer join
+(select measure_date as FI006_Date, measure_value as FI006_value, t.Tag_number_id as FI006_Tag, s.ID FI006_ID, s.Company FI006_Company, s.Unit FI006_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI006') FI006
+on FI003_Date = FI006_Date
+and FI003_Company = FI006_Company
+and FI003_Unit = FI006_Unit
+left outer join
+(select measure_date as FI008_Date, measure_value as FI008_value, t.Tag_number_id as FI008_Tag, s.ID FI008_ID, s.Company FI008_Company, s.Unit FI008_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI008') FI008
+on FI003_Date = FI008_Date
+and FI003_Company = FI008_Company
+and FI003_Unit = FI008_Unit
+left outer join
+(select measure_date as FI013_Date, measure_value as FI013_value, t.Tag_number_id as FI013_Tag, s.ID FI013_ID, s.Company FI013_Company, s.Unit FI013_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI013') FI013
+on FI003_Date = FI013_Date
+and FI003_Company = FI013_Company
+and FI003_Unit = FI013_Unit
+left outer join
+(select measure_date as FI014_Date, measure_value as FI014_value, t.Tag_number_id as FI014_Tag, s.ID FI014_ID, s.Company FI014_Company, s.Unit FI014_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI014') FI014
+on FI003_Date = FI014_Date
+and FI003_Company = FI014_Company
+and FI003_Unit = FI014_Unit
+left outer join
+(select measure_date as FI020_Date, measure_value as FI020_value, t.Tag_number_id as FI020_Tag, s.ID FI020_ID, s.Company FI020_Company, s.Unit FI020_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI020') FI020
+on FI003_Date = FI020_Date
+and FI003_Company = FI020_Company
+and FI003_Unit = FI020_Unit
+left outer join
+(select measure_date as FI021_Date, measure_value as FI021_value, t.Tag_number_id as FI021_Tag, s.ID FI021_ID, s.Company FI021_Company, s.Unit FI021_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI021') FI021
+on FI003_Date = FI021_Date
+and FI003_Company = FI021_Company
+and FI003_Unit = FI021_Unit
+left outer join
+(select measure_date as FI027_Date, measure_value as FI027_value, t.Tag_number_id as FI027_Tag, s.ID FI027_ID, s.Company FI027_Company, s.Unit FI027_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI027') FI027
+on FI003_Date = FI027_Date
+and FI003_Company = FI027_Company
+and FI003_Unit = FI027_Unit
+left outer join
+(select measure_date as FI028_Date, measure_value as FI028_value, t.Tag_number_id as FI028_Tag, s.ID FI028_ID, s.Company FI028_Company, s.Unit FI028_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI028') FI028
+on FI003_Date = FI028_Date
+and FI003_Company = FI028_Company
+and FI003_Unit = FI028_Unit
+left outer join
+(select measure_date as FI036_Date, measure_value as FI036_value, t.Tag_number_id as FI036_Tag, s.ID FI036_ID, s.Company FI036_Company, s.Unit FI036_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI036') FI036
+on FI003_Date = FI036_Date
+and FI003_Company = FI036_Company
+and FI003_Unit = FI036_Unit
+left outer join
+(select measure_date as FI037_Date, measure_value as FI037_value, t.Tag_number_id as FI037_Tag, s.ID FI037_ID, s.Company FI037_Company, s.Unit FI037_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI037') FI037
+on FI003_Date = FI037_Date
+and FI003_Company = FI037_Company
+and FI003_Unit = FI037_Unit
+left outer join
+(select measure_date as FI046_Date, measure_value as FI046_value, t.Tag_number_id as FI046_Tag, s.ID FI046_ID, s.Company FI046_Company, s.Unit FI046_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI046') FI046
+on FI003_Date = FI046_Date
+and FI003_Company = FI046_Company
+and FI003_Unit = FI046_Unit
+left outer join
+(select measure_date as FI048_Date, measure_value as FI048_value, t.Tag_number_id as FI048_Tag, s.ID FI048_ID, s.Company FI048_Company, s.Unit FI048_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI048') FI048
+on FI003_Date = FI048_Date
+and FI003_Company = FI048_Company
+and FI003_Unit = FI048_Unit
+left outer join
+(select measure_date as FI052_Date, measure_value as FI052_value, t.Tag_number_id as FI052_Tag, s.ID FI052_ID, s.Company FI052_Company, s.Unit FI052_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI052') FI052
+on FI003_Date = FI052_Date
+and FI003_Company = FI052_Company
+and FI003_Unit = FI052_Unit
+left outer join
+(select measure_date as FI053_Date, measure_value as FI053_value, t.Tag_number_id as FI053_Tag, s.ID FI053_ID, s.Company FI053_Company, s.Unit FI053_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI053') FI053
+on FI003_Date = FI053_Date
+and FI003_Company = FI053_Company
+and FI003_Unit = FI053_Unit
+left outer join
+(select measure_date as FI054_Date, measure_value as FI054_value, t.Tag_number_id as FI054_Tag, s.ID FI054_ID, s.Company FI054_Company, s.Unit FI054_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI054') FI054
+on FI003_Date = FI054_Date
+and FI003_Company = FI054_Company
+and FI003_Unit = FI054_Unit
+left outer join
+(select measure_date as AI063_Date, measure_value as AI063_value, t.Tag_number_id as AI063_Tag, s.ID AI063_ID, s.Company AI063_Company, s.Unit AI063_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'AI063') AI063
+on FI003_Date = AI063_Date
+and FI003_Company = AI063_Company
+and FI003_Unit = AI063_Unit
+where (((FI005_Value*.92)/33.01)+((FI006_Value*.33)/22.97)) <> 0)
+
+select ref.Measure_Date Measure_Date, ref.Measure_ID ID, ref.company Company, ref.unit Unit,
+(((((FI005_value/33.01)*.92)+((FI006_Value/22.97)*.333))-((((FI003_Value+FI004_Value+FI005_Value+FI006_Value+FI008_Value+
+FI013_Value+FI014_Value+FI020_Value+FI021_Value+FI027_Value+FI028_Value+FI036_Value+FI037_Value+FI046_Value+FI048_Value+
+FI052_Value+FI053_Value+FI054_Value)-(((FI005_value/33.01)*.92)+((FI006_Value/22.97)*.333))*32.065)/25.49)*AI063_Value/1000000))/
+(((FI005_value/33.01)*.92)+((FI006_Value/22.97)*.333))*100) SRE1
+from CTE
+left outer join
+(select s.Measure_Date Measure_date, s.ID Measure_ID, s.Company Company, s.Unit Unit, T.tag_number_id Tag_Number_id
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id) ref
+on FI003_ID = ref.Measure_ID
+order by FI003_Date asc
+=================================
+
+qry_SRE_Calc2_2
+
+
+with CTE as
+(Select FI003_Date, FI003_ID, FI003_Value, FI004_Value, FI005_Value, FI006_Value, FI013_Value, FI014_Value, FI021_Value, 
+FI028_Value, FI037_Value, FI046_Value, FI048_Value, FI053_Value, FI054_Value, AI063_Value
+from
+(select measure_date as FI003_Date, measure_value as FI003_value, t.Tag_number_id as FI003_Tag, s.ID FI003_ID, s.Company FI003_Company, s.Unit FI003_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI003') FI003
+left outer join
+(select measure_date as FI004_Date, measure_value as FI004_value, t.Tag_number_id as FI004_Tag, s.ID FI004_ID, s.Company FI004_Company, s.Unit FI004_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI004') FI004
+on FI003_Date = FI004_Date
+and FI003_Company = FI004_Company
+and FI003_Unit = FI004_Unit
+left outer join
+(select measure_date as FI005_Date, measure_value as FI005_value, t.Tag_number_id as FI005_Tag, s.ID FI005_ID, s.Company FI005_Company, s.Unit FI005_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI005') FI005
+on FI003_Date = FI005_Date
+and FI003_Company = FI005_Company
+and FI003_Unit = FI005_Unit
+left outer join
+(select measure_date as FI006_Date, measure_value as FI006_value, t.Tag_number_id as FI006_Tag, s.ID FI006_ID, s.Company FI006_Company, s.Unit FI006_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI006') FI006
+on FI003_Date = FI006_Date
+and FI003_Company = FI006_Company
+and FI003_Unit = FI006_Unit
+left outer join
+(select measure_date as FI013_Date, measure_value as FI013_value, t.Tag_number_id as FI013_Tag, s.ID FI013_ID, s.Company FI013_Company, s.Unit FI013_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI013') FI013
+on FI003_Date = FI013_Date
+and FI003_Company = FI013_Company
+and FI003_Unit = FI013_Unit
+left outer join
+(select measure_date as FI014_Date, measure_value as FI014_value, t.Tag_number_id as FI014_Tag, s.ID FI014_ID, s.Company FI014_Company, s.Unit FI014_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI014') FI014
+on FI003_Date = FI014_Date
+and FI003_Company = FI014_Company
+and FI003_Unit = FI014_Unit
+left outer join
+(select measure_date as FI021_Date, measure_value as FI021_value, t.Tag_number_id as FI021_Tag, s.ID FI021_ID, s.Company FI021_Company, s.Unit FI021_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI021') FI021
+on FI003_Date = FI021_Date
+and FI003_Company = FI021_Company
+and FI003_Unit = FI021_Unit
+left outer join
+(select measure_date as FI028_Date, measure_value as FI028_value, t.Tag_number_id as FI028_Tag, s.ID FI028_ID, s.Company FI028_Company, s.Unit FI028_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI028') FI028
+on FI003_Date = FI028_Date
+and FI003_Company = FI028_Company
+and FI003_Unit = FI028_Unit
+left outer join
+(select measure_date as FI037_Date, measure_value as FI037_value, t.Tag_number_id as FI037_Tag, s.ID FI037_ID, s.Company FI037_Company, s.Unit FI037_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI037') FI037
+on FI003_Date = FI037_Date
+and FI003_Company = FI037_Company
+and FI003_Unit = FI037_Unit
+left outer join
+(select measure_date as FI046_Date, measure_value as FI046_value, t.Tag_number_id as FI046_Tag, s.ID FI046_ID, s.Company FI046_Company, s.Unit FI046_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI046') FI046
+on FI003_Date = FI046_Date
+and FI003_Company = FI046_Company
+and FI003_Unit = FI046_Unit
+left outer join
+(select measure_date as FI048_Date, measure_value as FI048_value, t.Tag_number_id as FI048_Tag, s.ID FI048_ID, s.Company FI048_Company, s.Unit FI048_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI048') FI048
+on FI003_Date = FI048_Date
+and FI003_Company = FI048_Company
+and FI003_Unit = FI048_Unit
+left outer join
+(select measure_date as FI053_Date, measure_value as FI053_value, t.Tag_number_id as FI053_Tag, s.ID FI053_ID, s.Company FI053_Company, s.Unit FI053_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI053') FI053
+on FI003_Date = FI053_Date
+and FI003_Company = FI053_Company
+and FI003_Unit = FI053_Unit
+left outer join
+(select measure_date as FI054_Date, measure_value as FI054_value, t.Tag_number_id as FI054_Tag, s.ID FI054_ID, s.Company FI054_Company, s.Unit FI054_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'FI054') FI054
+on FI003_Date = FI054_Date
+and FI003_Company = FI054_Company
+and FI003_Unit = FI054_Unit
+left outer join
+(select measure_date as AI063_Date, measure_value as AI063_value, t.Tag_number_id as AI063_Tag, s.ID AI063_ID, s.Company AI063_Company, s.Unit AI063_Unit
+from dbo.slovnaft_data2 s, dbo.tag_ref2 t
+where s.tag_ref_id = t.id
+and t.tag_number_id = 'AI063') AI063
+on FI003_Date = AI063_Date
+and FI003_Company = AI063_Company
+and FI003_Unit = AI063_Unit)
+
+select ref.Measure_Date Measure_Date, ref.Measure_ID ID, ref.company Company, ref.unit Unit,
+(((FI005_Value/33.01*.92+FI006_Value/22.97*.333)-(AI063_Value/1000000*(((FI003_Value + FI004_Value + FI014_Value + FI021_Value + FI028_Value + FI037_Value + FI046_Value + FI048_Value + 
+FI053_Value + FI054_Value)/28.747791614599*(78.3/100)+FI006_Value/22.3*.33/2)/.92)))/ (FI005_Value/33.01*.92+FI006_Value/22.97*.333))*100 SRE2
+from CTE
+left outer join
+(select s.Measure_Date Measure_date, s.ID Measure_ID, s.Company Company, s.Unit Unit, T.tag_number_id Tag_Number_id
+from dbo.slovnaft_data2 s, tag_ref2 t
+where s.tag_ref_id = t.id) ref
+on FI003_ID = ref.Measure_ID
+where (FI005_Value/33.01*.92+FI006_Value/22.97*.333) <> 0
+and 28.747791614599*(78.3/100)+FI006_Value/22.3*.33/2 <> 0
+order by FI003_Date asc
+
+================================
